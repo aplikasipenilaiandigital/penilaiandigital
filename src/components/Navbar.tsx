@@ -38,9 +38,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onNavigateView('public')}
           className="flex items-center gap-3 cursor-pointer group select-none"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 p-0.5 shadow-md flex items-center justify-center transform group-hover:scale-105 transition-transform">
-            <div className="w-full h-full bg-stone-950 rounded-[10px] flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-amber-400" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 p-0.5 shadow-md flex items-center justify-center transform group-hover:scale-105 transition-transform overflow-hidden">
+            <div className="w-full h-full bg-stone-950 rounded-[10px] flex items-center justify-center overflow-hidden">
+              {eventConfig.logoUrl ? (
+                <img
+                  src={eventConfig.logoUrl}
+                  alt="Logo Profil"
+                  className="w-full h-full object-cover rounded-[9px]"
+                />
+              ) : (
+                <Trophy className="w-5 h-5 text-amber-400" />
+              )}
             </div>
           </div>
 

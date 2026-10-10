@@ -151,6 +151,7 @@ export interface EventConfig {
   peraturanLomba: string[];
   nomorDanaAdmin: string; // Default: 081314420312
   namaAkunDana: string; // S-IMPEL DIGITAL
+  qrisImageUrl?: string; // QRIS DANA Image URL
   // Toggle controls for Super Admin:
   votingClosed: boolean;
   danaTransferDisabled: boolean;

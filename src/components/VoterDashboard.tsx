@@ -173,26 +173,62 @@ export const VoterDashboard: React.FC<VoterDashboardProps> = ({
             </div>
           </div>
 
-          {/* Card 2: Akun DANA Panitia */}
+          {/* Card 2: Akun DANA & Kode QRIS Panitia */}
           <div className="bg-stone-950 border border-stone-800 rounded-2xl p-5 shadow-md flex flex-col justify-between">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
-                METODE PEMBAYARAN RESMI
-              </span>
-              <h3 className="font-bold text-base text-white">DANA QRIS Terintegrasi</h3>
-              <div className="mt-2 bg-stone-900 p-3 rounded-xl border border-stone-800">
-                <div className="text-[11px] text-stone-400">Nomor Akun Tujuan DANA:</div>
-                <div className="text-base font-mono font-bold text-amber-300">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                  METODE PEMBAYARAN RESMI
+                </span>
+                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-600/40 px-2 py-0.5 rounded-full font-bold">
+                  QRIS Siap Scan
+                </span>
+              </div>
+              <h3 className="font-bold text-base text-white">QRIS DANA Terintegrasi</h3>
+
+              {/* QRIS Image Display on Voting / Purchasing page */}
+              <div className="mt-2.5 bg-white p-2.5 rounded-xl border-2 border-amber-400 text-center shadow">
+                {eventConfig.qrisImageUrl ? (
+                  <div className="space-y-1">
+                    <img
+                      src={eventConfig.qrisImageUrl}
+                      alt="QRIS DANA Pembelian Suara"
+                      className="w-36 h-36 object-contain mx-auto rounded shadow-sm border border-stone-200 bg-white"
+                    />
+                    <div className="text-[10px] text-emerald-700 font-bold flex items-center justify-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span>Scan QRIS Resmi Panitia</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-2 text-stone-800">
+                    <div className="w-28 h-28 mx-auto bg-stone-100 rounded-lg flex flex-col items-center justify-center border border-dashed border-stone-300">
+                      <CreditCard className="w-8 h-8 text-amber-600 mb-1" />
+                      <span className="text-[9px] font-bold text-stone-600">Barcode DANA</span>
+                    </div>
+                    <span className="text-[10px] text-stone-600 block mt-1">Nomor DANA Resmi</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-2.5 bg-stone-900 p-2.5 rounded-xl border border-stone-800">
+                <div className="text-[10px] text-stone-400">Nomor Akun Tujuan DANA:</div>
+                <div className="text-sm font-mono font-bold text-amber-300">
                   {eventConfig.nomorDanaAdmin || '081314420312'}
                 </div>
-                <div className="text-[10px] text-stone-500 mt-0.5">
+                <div className="text-[10px] text-stone-500">
                   a.n. {eventConfig.namaAkunDana || 'S-IMPEL DIGITAL'}
                 </div>
               </div>
             </div>
-            <p className="text-[11px] text-stone-500 mt-2">
-              Biaya resmi Rp 5.000 / suara vote. Verifikasi langsung disetujui Admin.
-            </p>
+            <div className="mt-2.5">
+              <button
+                onClick={() => setIsDanaModalOpen(true)}
+                className="w-full py-1.5 bg-stone-800 hover:bg-stone-700 text-amber-300 rounded-lg text-xs font-semibold cursor-pointer border border-stone-700 flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>Buka Detail & Scan Penuh</span>
+              </button>
+            </div>
           </div>
 
           {/* Card 3: Statistik Suara Saya */}

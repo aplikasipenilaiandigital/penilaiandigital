@@ -13,12 +13,14 @@ import {
   Sparkles,
   Layers,
   LayoutGrid,
-  Maximize2
+  Maximize2,
+  Printer
 } from 'lucide-react';
 import { ItemNilaiKriteria, MataLomba, NilaiSubmission, PelanggaranEntry, Peserta, User } from '../types';
 import { StorageService } from '../services/storage';
 import { StopwatchTimer } from './StopwatchTimer';
 import { DigitalSignaturePad } from './DigitalSignaturePad';
+import { PrintReportView } from './PrintReportView';
 import { soundService } from '../services/sound';
 
 interface JuriDashboardProps {
@@ -47,6 +49,7 @@ export const JuriDashboard: React.FC<JuriDashboardProps> = ({ currentUser, onLog
   // Single participant mode state
   const [selectedPesertaId, setSelectedPesertaId] = useState<string>(participants[0]?.id || '');
   const activePeserta = participants.find(p => p.id === selectedPesertaId) || participants[0];
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   // Existing submission for this juri + active participant
   const existingSub = allSubmissions.find(
@@ -241,7 +244,17 @@ export const JuriDashboard: React.FC<JuriDashboardProps> = ({ currentUser, onLog
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Note: NO upload/export/print menu visible here! Strict requirement */}
+          <button
+            onClick={() => {
+              soundService.playClick();
+              setIsPrintModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-stone-950 font-bold rounded-xl text-xs cursor-pointer transition-all shadow"
+            title="Cetak Blangko / Hasil Penilaian Dewan Juri ke Printer"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Cetak ke Printer</span>
+          </button>
           <button
             onClick={onLogout}
             className="px-3.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
@@ -452,7 +465,7 @@ export const JuriDashboard: React.FC<JuriDashboardProps> = ({ currentUser, onLog
                                 <div className="text-[11px] text-stone-400 mb-1.5">
                                   Centang kolom kotak sesuai jumlah skor (1 kotak = 1 poin, maksimal {crit.nilaiMaksimal} kotak):
                                 </div>
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="flex flex-wrap gap-2 justify-start items-center text-left">
                                   {Array.from({ length: crit.nilaiMaksimal }, (_, i) => i + 1).map(boxNum => {
                                     const isChecked = currentScore.checkedIndices.includes(boxNum);
                                     return (
@@ -683,6 +696,18 @@ export const JuriDashboard: React.FC<JuriDashboardProps> = ({ currentUser, onLog
           </div>
         )}
       </main>
+
+      {/* Modal Cetak Printer Resmi Juri */}
+      {isPrintModalOpen && (
+        <PrintReportView
+          mode="blangko_per_peserta_per_lomba"
+          selectedMataLombaId={selectedLombaId}
+          selectedPesertaId={selectedPesertaId}
+          includeFilledScores={true}
+          eventConfig={StorageService.getEventConfig()}
+          onClose={() => setIsPrintModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

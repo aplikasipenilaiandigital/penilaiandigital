@@ -49,6 +49,7 @@ const DEFAULT_EVENT_CONFIG: EventConfig = {
   ],
   nomorDanaAdmin: '081314420312',
   namaAkunDana: 'S-IMPEL DIGITAL (081314420312)',
+  qrisImageUrl: '',
   votingClosed: false,
   danaTransferDisabled: false,
   autoApproveWebhookEnabled: false,
@@ -1031,4 +1032,63 @@ export const StorageService = {
 
     return counts;
   },
+};
+
+// Utility to compress and resize uploaded images for reliable localStorage storage
+export const compressImageFile = (
+  file: File,
+  maxWidth = 1200,
+  maxHeight = 1200,
+  quality = 0.85
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawDataUrl = e.target?.result as string;
+      if (!rawDataUrl) {
+        resolve('');
+        return;
+      }
+
+      // If it's an SVG or small file, return directly
+      if (file.type === 'image/svg+xml' || file.size < 80 * 1024) {
+        resolve(rawDataUrl);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(rawDataUrl);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed);
+      };
+
+      img.onerror = () => resolve(rawDataUrl);
+      img.src = rawDataUrl;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 };

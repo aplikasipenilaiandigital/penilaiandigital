@@ -244,14 +244,11 @@ export const StopwatchTimer: React.FC<StopwatchTimerProps> = ({
         </div>
       )}
 
-      {/* Target & Tie-Breaker Information */}
-      <div className="flex flex-wrap items-center justify-between text-[11px] text-stone-400 pt-1 border-t border-stone-800/80">
-        <div>
-          Target: <span className="text-stone-300 font-medium">{formatDisplay(targetSeconds)}</span> (Maks: {maxMinutes} menit)
-        </div>
-        <div className="flex items-center gap-1 text-amber-300/90">
-          <AlertCircle className="w-3 h-3 text-amber-400" />
-          <span>Waktu lebih cepat = Peringkat lebih tinggi jika nilai sama (Tie-Breaker).</span>
+      {/* Tie-Breaker Information */}
+      <div className="flex flex-wrap items-center justify-end text-[11px] text-stone-400 pt-1 border-t border-stone-800/80">
+        <div className="flex items-center gap-1.5 text-amber-300/90">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+          <span>Waktu lebih cepat = Peringkat lebih tinggi jika nilai sama (Tie-Breaker Resmi).</span>
         </div>
       </div>
     </div>

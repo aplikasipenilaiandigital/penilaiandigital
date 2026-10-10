@@ -48,7 +48,7 @@ import {
   UserRole,
   VotingCategory
 } from '../types';
-import { StorageService } from '../services/storage';
+import { StorageService, compressImageFile } from '../services/storage';
 import { PrintModeType, PrintReportView } from './PrintReportView';
 import { soundService } from '../services/sound';
 
@@ -1089,36 +1089,58 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     soundService.playClick();
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        const updated = { ...localConfig, logoUrl: reader.result };
+    try {
+      const compressed = await compressImageFile(file, 800, 800, 0.9);
+      if (compressed) {
+        const updated = { ...localConfig, logoUrl: compressed };
         setLocalConfig(updated);
         StorageService.saveEventConfig(updated);
         onUpdateEventConfig(updated);
-        showAlert('success', 'Logo resmi kegiatan berhasil dimuat dan disimpan!');
+        showAlert('success', 'Foto profil / logo resmi kegiatan berhasil diperbarui dan disimpan!');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Logo upload error:', err);
+      showAlert('error', 'Gagal memproses gambar foto profil. Coba gunakan format JPG/PNG lain.');
+    }
   };
 
-  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        const updated = { ...localConfig, backgroundUrl: reader.result };
+    try {
+      const compressed = await compressImageFile(file, 1920, 1080, 0.82);
+      if (compressed) {
+        const updated = { ...localConfig, backgroundUrl: compressed };
         setLocalConfig(updated);
         StorageService.saveEventConfig(updated);
         onUpdateEventConfig(updated);
-        showAlert('success', 'Gambar latar belakang berhasil dimuat dan disimpan!');
+        showAlert('success', 'Gambar latar belakang (background) aplikasi berhasil diperbarui secara dinamis!');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Background upload error:', err);
+      showAlert('error', 'Gagal memproses gambar latar belakang. Coba gunakan gambar lain.');
+    }
+  };
+
+  const handleQrisUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImageFile(file, 1000, 1000, 0.9);
+      if (compressed) {
+        const updated = { ...localConfig, qrisImageUrl: compressed };
+        setLocalConfig(updated);
+        StorageService.saveEventConfig(updated);
+        onUpdateEventConfig(updated);
+        showAlert('success', 'Gambar Kode QRIS DANA berhasil diunggah & disimpan untuk pembelian suara!');
+      }
+    } catch (err) {
+      console.error('QRIS upload error:', err);
+      showAlert('error', 'Gagal memproses gambar QRIS. Silakan pilih file gambar lain.');
+    }
   };
 
   const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1177,7 +1199,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => {
+              setPrintMode('rekapan_per_matalomba');
+              setPrintModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-stone-950 font-bold rounded-xl text-xs cursor-pointer shadow"
+            title="Integrasi Cetak: Langsung terhubung ke printer fisik / thermal"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Cetak Printer
+          </button>
           <button
             onClick={onViewPublic}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-amber-300 border border-stone-700 rounded-xl text-xs font-semibold cursor-pointer"
@@ -1414,6 +1447,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-xs font-bold text-stone-200">Aksi Panel Ringkasan & Monitor:</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => {
+                    soundService.playClick();
+                    setPrintMode('blangko_semua_peserta_per_lomba');
+                    setPrintModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-stone-950 rounded-xl text-xs font-bold cursor-pointer transition-all shadow"
+                  title="Buka Menu Cetak Laporan & Hubungkan ke Printer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Cetak / Printer
+                </button>
                 <button
                   onClick={() => {
                     soundService.playClick();
@@ -1719,6 +1764,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <Eye className="w-3.5 h-3.5" />
                             </button>
                             <button
+                              onClick={() => {
+                                setPrintMode('blangko_per_peserta_per_lomba');
+                                setPrintSelectedMl(sub.mataLombaId);
+                                setPrintSelectedPst(sub.pesertaId);
+                                setPrintIncludeFilled(true);
+                                setPrintModalOpen(true);
+                              }}
+                              className="p-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 rounded-lg text-xs cursor-pointer border border-amber-600/40"
+                              title="Cetak Berkas Nilai ke Printer"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                            <button
                               onClick={() => handleOpenEditSubmission(sub)}
                               className="p-1.5 bg-blue-900 hover:bg-blue-800 text-blue-200 rounded-lg text-xs cursor-pointer"
                               title="Edit Data Penilaian"
@@ -1837,7 +1895,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div>
                         <span className="text-stone-400 block text-[10px]">Pencatatan Waktu (Tie-Breaker):</span>
                         <strong className="text-amber-300 font-mono">
-                          Target: {ml.durasiTargetDetik} detik (Maks {ml.durasiMaksimalMenit} mnt)
+                          Batas Waktu Lomba: {ml.durasiMaksimalMenit} Menit
                         </strong>
                       </div>
                       <div>
@@ -2258,6 +2316,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               )}
             </div>
 
+            {/* Banner & Pengaturan Cepat Kode QRIS DANA */}
+            <div className="bg-stone-900/90 border border-emerald-500/40 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                {localConfig.qrisImageUrl ? (
+                  <img
+                    src={localConfig.qrisImageUrl}
+                    alt="QRIS DANA"
+                    className="w-14 h-14 object-contain bg-white rounded-lg p-0.5 border-2 border-emerald-500 shadow"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-lg bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-stone-500">
+                    <CreditCard className="w-6 h-6 text-emerald-400" />
+                    <span className="text-[8px] text-stone-400 mt-0.5">Default QR</span>
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-xs text-white">Kode Barcode QRIS DANA Pembelian Suara</h4>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      localConfig.qrisImageUrl ? 'bg-emerald-950 text-emerald-300 border border-emerald-600/40' : 'bg-amber-950 text-amber-300 border border-amber-600/40'
+                    }`}>
+                      {localConfig.qrisImageUrl ? '✓ Foto QRIS Kustom Aktif' : 'Barcode Bawaan'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-400 mt-0.5">
+                    Akun: <strong className="text-amber-300">{localConfig.namaAkunDana}</strong> ({localConfig.nomorDanaAdmin}) • Ditampilkan di popup scan pemirsa.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow">
+                  <Upload className="w-3.5 h-3.5" />
+                  {localConfig.qrisImageUrl ? 'Ganti QRIS' : 'Unggah QRIS'}
+                  <input type="file" accept="image/*" onChange={handleQrisUpload} className="hidden" />
+                </label>
+                {localConfig.qrisImageUrl && (
+                  <button
+                    onClick={() => {
+                      const updated = { ...localConfig, qrisImageUrl: '' };
+                      setLocalConfig(updated);
+                      StorageService.saveEventConfig(updated);
+                      onUpdateEventConfig(updated);
+                      showAlert('error', 'Foto QRIS DANA telah dihapus.');
+                    }}
+                    className="px-2.5 py-1.5 bg-stone-800 hover:bg-red-950 text-stone-300 hover:text-red-300 rounded-xl text-xs cursor-pointer transition-colors"
+                  >
+                    Hapus
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-stone-900 text-stone-300 uppercase text-[11px] border-b border-stone-800">
@@ -2431,11 +2542,56 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="border-b border-stone-800 pb-4">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Printer className="w-5 h-5 text-amber-400" />
-                Cetak & Ekspor Laporan Resmi (PDF Standar A4)
+                Cetak & Ekspor Laporan Resmi (PDF Standar A4 & Integrasi Printer)
               </h2>
               <p className="text-xs text-stone-400 mt-0.5">
-                Fitur cetak langsung ke printer perangkat atau download file PDF standar yang otomatis tersimpan ke komputer/ponsel.
+                Fitur cetak langsung ke perangkat printer fisik/thermal melalui sistem cetak browser atau unduh file dokumen resmi.
               </p>
+            </div>
+
+            {/* Integrasi Perangkat Cetak Langsung (Printer Fisik Standar A4 & Thermal POS) */}
+            <div className="bg-gradient-to-r from-stone-900 via-stone-900 to-amber-950/40 border border-amber-500/40 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0">
+                  <Printer className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                    Integrasi Perangkat Cetak (Printer Fisik & Thermal)
+                    <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-600/40 px-2 py-0.5 rounded-full font-bold">
+                      ✓ Siap Cetak
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-300 mt-0.5">
+                    Mendukung printer fisik laser/inkjet standar kertas A4 (Kop & tanda tangan resmi) serta printer struk thermal (POS 58mm & 80mm).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => {
+                    soundService.playClick();
+                    setPrintMode('blangko_semua_peserta_per_lomba');
+                    setPrintModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-stone-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Cetak Blangko Juri (A4)
+                </button>
+                <button
+                  onClick={() => {
+                    soundService.playClick();
+                    setPrintMode('rekapan_keseluruhan');
+                    setPrintModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 bg-stone-800 hover:bg-stone-700 text-amber-300 font-bold rounded-xl text-xs border border-amber-500/40 flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Cetak Rekapan Master
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2749,92 +2905,185 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               />
             </div>
 
-            {/* SECTION: MULTIMEDIA (BACKGROUND, AUDIO BGM, LOGO) */}
-            <div className="bg-stone-900 p-5 rounded-2xl border border-stone-800 space-y-4">
-              <h3 className="font-bold text-sm text-amber-300 flex items-center gap-2">
-                <Music className="w-4 h-4" />
-                Multimedia & Musik Latar Belakang (BGM)
-              </h3>
+            {/* SECTION 1: KUSTOMISASI PROFIL DAN LATAR BELAKANG APLIKASI */}
+            <div className="bg-stone-900/90 p-5 rounded-2xl border border-stone-800 space-y-4">
+              <div className="border-b border-stone-800 pb-2">
+                <h3 className="font-bold text-sm text-amber-300 flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-amber-400" />
+                  KUSTOMISASI PROFIL DAN LATAR BELAKANG (BACKGROUND) APLIKASI
+                </h3>
+                <p className="text-xs text-stone-400 mt-0.5">
+                  Ganti foto profil resmi aplikasi serta ubah gambar latar belakang (background) dan warna tema secara dinamis dan real-time.
+                </p>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Upload Logo */}
-                <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 text-center space-y-2">
-                  <span className="text-xs font-bold text-stone-300 block">Logo Profil Kegiatan</span>
-                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg text-xs cursor-pointer">
-                    <Upload className="w-3.5 h-3.5" />
-                    Pilih File Logo
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  </label>
-                  {localConfig.logoUrl ? (
-                    <div className="space-y-1">
-                      <img src={localConfig.logoUrl} alt="Logo" className="h-10 mx-auto rounded object-contain" />
+                {/* 1. Foto Profil / Logo Aplikasi */}
+                <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 text-center space-y-3 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-amber-200 block">Foto Profil / Logo Aplikasi</span>
+                    <p className="text-[10px] text-stone-400 mt-0.5">
+                      Tampil pada Navbar atas, header portal, dan identitas resmi sistem.
+                    </p>
+                  </div>
+
+                  <div className="py-2">
+                    {localConfig.logoUrl ? (
+                      <div className="space-y-2">
+                        <div className="w-20 h-20 mx-auto rounded-2xl overflow-hidden border-2 border-amber-500 shadow-md bg-stone-900 flex items-center justify-center p-1">
+                          <img src={localConfig.logoUrl} alt="Foto Profil" className="w-full h-full object-cover rounded-xl" />
+                        </div>
+                        <span className="inline-block text-[10px] text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/40">
+                          ✓ Foto Profil Terpasang
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 mx-auto rounded-2xl border-2 border-dashed border-stone-700 flex flex-col items-center justify-center text-stone-500">
+                        <ImageIcon className="w-6 h-6 mb-1 text-stone-600" />
+                        <span className="text-[9px]">Belum Ada Foto</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-stone-950 font-bold rounded-xl text-xs cursor-pointer shadow">
+                      <Upload className="w-3.5 h-3.5" />
+                      {localConfig.logoUrl ? 'Ganti Foto Profil' : 'Unggah Foto Profil'}
+                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                    </label>
+
+                    {localConfig.logoUrl && (
                       <button
+                        type="button"
                         onClick={() => {
                           const updated = { ...localConfig, logoUrl: '' };
                           setLocalConfig(updated);
                           StorageService.saveEventConfig(updated);
                           onUpdateEventConfig(updated);
+                          showAlert('error', 'Foto profil aplikasi telah dihapus (kembali ke icon default).');
                         }}
-                        className="text-[10px] text-red-400 hover:underline cursor-pointer block mx-auto"
+                        className="text-[11px] text-red-400 hover:underline cursor-pointer block mx-auto pt-1"
                       >
-                        Hapus Logo
+                        Hapus Foto Profil
                       </button>
-                    </div>
-                  ) : (
-                    <div className="text-[10px] text-stone-500">Belum ada logo terunggah</div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
-                {/* Upload Background Image */}
-                <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 text-center space-y-2">
-                  <span className="text-xs font-bold text-stone-300 block">Latar Belakang (Background)</span>
-                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg text-xs cursor-pointer">
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    Pilih File Gambar
-                    <input type="file" accept="image/*" onChange={handleBackgroundUpload} className="hidden" />
-                  </label>
-                  {localConfig.backgroundUrl ? (
-                    <div className="space-y-1">
-                      <img src={localConfig.backgroundUrl} alt="Background" className="h-10 mx-auto rounded object-cover w-20" />
+                {/* 2. Gambar Latar Belakang (Background) */}
+                <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 text-center space-y-3 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-amber-200 block">Gambar Latar Belakang (Background)</span>
+                    <p className="text-[10px] text-stone-400 mt-0.5">
+                      Menghiasi tampilan latar belakang seluruh halaman web secara dinamis.
+                    </p>
+                  </div>
+
+                  <div className="py-2">
+                    {localConfig.backgroundUrl ? (
+                      <div className="space-y-2">
+                        <div className="w-full h-20 rounded-xl overflow-hidden border border-amber-500/50 shadow-md bg-stone-900">
+                          <img src={localConfig.backgroundUrl} alt="Background" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="inline-block text-[10px] text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/40">
+                          ✓ Background Gambar Aktif
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="w-full h-20 rounded-xl border-2 border-dashed border-stone-700 flex flex-col items-center justify-center text-stone-500">
+                        <span className="text-[10px]">Warna Dasar Aktif: {localConfig.backgroundColor || '#1c1917'}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-xl text-xs cursor-pointer border border-stone-700">
+                      <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
+                      {localConfig.backgroundUrl ? 'Ganti Gambar Background' : 'Unggah Gambar Background'}
+                      <input type="file" accept="image/*" onChange={handleBackgroundUpload} className="hidden" />
+                    </label>
+
+                    {localConfig.backgroundUrl && (
                       <button
+                        type="button"
                         onClick={() => {
                           const updated = { ...localConfig, backgroundUrl: '' };
                           setLocalConfig(updated);
                           StorageService.saveEventConfig(updated);
                           onUpdateEventConfig(updated);
+                          showAlert('error', 'Gambar latar belakang dihapus (menggunakan warna dasar).');
                         }}
-                        className="text-[10px] text-red-400 hover:underline cursor-pointer block mx-auto"
+                        className="text-[11px] text-red-400 hover:underline cursor-pointer block mx-auto pt-1"
                       >
-                        Hapus Background
+                        Hapus Background Gambar
                       </button>
+                    )}
+
+                    <div className="pt-2 border-t border-stone-800 text-left">
+                      <label className="text-[10px] text-stone-400 block mb-1">Pilih Warna Dasar Aplikasi:</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={localConfig.backgroundColor || '#1c1917'}
+                          onChange={e => {
+                            const updated = { ...localConfig, backgroundColor: e.target.value };
+                            setLocalConfig(updated);
+                            StorageService.saveEventConfig(updated);
+                            onUpdateEventConfig(updated);
+                          }}
+                          className="w-8 h-8 rounded border border-stone-700 cursor-pointer bg-transparent"
+                          title="Pilih Warna Hex"
+                        />
+                        <span className="text-xs font-mono text-stone-300">{localConfig.backgroundColor || '#1c1917'}</span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-[10px] text-stone-500">Menggunakan warna dasar</div>
-                  )}
+                  </div>
                 </div>
 
-                {/* Upload BGM Audio */}
-                <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 text-center space-y-2">
-                  <span className="text-xs font-bold text-stone-300 block">BGM Musik Latar (Looping)</span>
-                  <div className="flex flex-wrap items-center justify-center gap-2">
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg text-xs cursor-pointer">
-                      <Music className="w-3.5 h-3.5" />
-                      Pilih File Audio (MP3/WAV)
-                      <input type="file" accept="audio/*" onChange={handleAudioUpload} className="hidden" />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleTestAudioToggle}
-                      className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold rounded-lg text-xs flex items-center gap-1"
-                    >
-                      {isAudioPreviewPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                      {isAudioPreviewPlaying ? 'Jeda' : 'Test Putar'}
-                    </button>
+                {/* 3. Musik Latar Belakang (BGM Audio) */}
+                <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 text-center space-y-3 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-amber-200 block">Musik Latar Belakang (BGM)</span>
+                    <p className="text-[10px] text-stone-400 mt-0.5">
+                      Musik instrumen yang diputar berulang (loop) saat aplikasi dibuka.
+                    </p>
                   </div>
-                  {localConfig.bgmAudioUrl ? (
-                    <div className="space-y-1">
-                      <div className="text-[10px] text-emerald-400">✓ File audio kustom aktif</div>
+
+                  <div className="py-2">
+                    {localConfig.bgmAudioUrl ? (
+                      <div className="space-y-1">
+                        <span className="inline-block text-[10px] text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/40">
+                          ✓ File Audio Kustom Terpasang
+                        </span>
+                        <p className="text-[10px] text-stone-400">Audio lokal tersimpan aman</p>
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-amber-400/90 bg-amber-950/30 p-2 rounded border border-amber-900/40">
+                        Synthesizer Ambient Digital Aktif
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-xl text-xs font-bold cursor-pointer border border-stone-700">
+                        <Music className="w-3.5 h-3.5 text-amber-400" />
+                        Pilih File Audio
+                        <input type="file" accept="audio/*" onChange={handleAudioUpload} className="hidden" />
+                      </label>
                       <button
+                        type="button"
+                        onClick={handleTestAudioToggle}
+                        className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold rounded-xl text-xs flex items-center gap-1 cursor-pointer"
+                      >
+                        {isAudioPreviewPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        {isAudioPreviewPlaying ? 'Jeda' : 'Test Putar'}
+                      </button>
+                    </div>
+
+                    {localConfig.bgmAudioUrl && (
+                      <button
+                        type="button"
                         onClick={() => {
                           const updated = { ...localConfig, bgmAudioUrl: '' };
                           setLocalConfig(updated);
@@ -2842,15 +3091,127 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           onUpdateEventConfig(updated);
                           soundService.startGlobalBGM('');
                           setIsAudioPreviewPlaying(false);
+                          showAlert('error', 'File audio kustom direset ke synthesizer bawaan.');
                         }}
-                        className="text-[10px] text-red-400 hover:underline cursor-pointer block mx-auto"
+                        className="text-[11px] text-red-400 hover:underline cursor-pointer block mx-auto pt-1"
                       >
                         Reset ke Synthesizer
                       </button>
-                    </div>
-                  ) : (
-                    <div className="text-[10px] text-amber-400">Synthesizer ambient aktif</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 2: UPLOAD & KELOLA KODE QRIS DANA (UNTUK PEMBELIAN SUARA / VOTE) */}
+            <div className="bg-stone-900/90 p-5 rounded-2xl border border-emerald-500/40 space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-800 pb-3">
+                <div>
+                  <h3 className="font-bold text-sm text-emerald-400 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-emerald-400" />
+                    UPLOAD & KELOLA KODE QRIS DANA (PEMBELIAN SUARA / VOTE)
+                  </h3>
+                  <p className="text-xs text-stone-400 mt-0.5">
+                    Unggah gambar barcode QRIS DANA resmi panitia. Gambar ini akan otomatis muncul pada halaman pembayaran suara/vote pemirsa agar dapat langsung dipindai (scan) oleh masyarakat.
+                  </p>
+                </div>
+
+                <label className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg">
+                  <Upload className="w-4 h-4" />
+                  {localConfig.qrisImageUrl ? 'Unggah / Ganti QRIS Baru' : 'Unggah Gambar QRIS DANA'}
+                  <input type="file" accept="image/*" onChange={handleQrisUpload} className="hidden" />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                {/* QRIS Preview Box (4 cols) */}
+                <div className="md:col-span-4 bg-stone-950 p-4 rounded-xl border border-stone-800 text-center space-y-3">
+                  <span className="text-xs font-bold text-stone-300 block">Tampilan Barcode QRIS Aktif:</span>
+
+                  <div className="bg-white p-3 rounded-2xl border-4 border-amber-400 max-w-[220px] mx-auto shadow-lg flex flex-col items-center justify-center">
+                    {localConfig.qrisImageUrl ? (
+                      <div className="space-y-1">
+                        <img
+                          src={localConfig.qrisImageUrl}
+                          alt="QRIS DANA Aktif"
+                          className="w-44 h-44 object-contain mx-auto rounded-lg"
+                        />
+                        <div className="text-[10px] text-emerald-800 font-bold">
+                          ✓ QRIS RESMI TERHUBUNG
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-44 h-44 flex flex-col items-center justify-center text-stone-400 border border-dashed border-stone-300 rounded-lg p-2">
+                        <CreditCard className="w-10 h-10 text-stone-300 mb-2" />
+                        <span className="text-[11px] text-stone-500 text-center leading-tight">
+                          Belum ada foto QRIS yang diunggah. Sistem menampilkan QRIS default.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {localConfig.qrisImageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = { ...localConfig, qrisImageUrl: '' };
+                        setLocalConfig(updated);
+                        StorageService.saveEventConfig(updated);
+                        onUpdateEventConfig(updated);
+                        showAlert('error', 'Gambar QRIS DANA dihapus (kembali ke barcode default).');
+                      }}
+                      className="text-xs text-red-400 hover:underline cursor-pointer block mx-auto"
+                    >
+                      Hapus Gambar QRIS
+                    </button>
                   )}
+                </div>
+
+                {/* QRIS Info & Account Settings (8 cols) */}
+                <div className="md:col-span-8 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-stone-950 p-3.5 rounded-xl border border-stone-800">
+                      <span className="text-[11px] text-stone-400 block mb-1">Nomor Akun DANA Panitia:</span>
+                      <input
+                        type="text"
+                        value={localConfig.nomorDanaAdmin}
+                        onChange={e => setLocalConfig({ ...localConfig, nomorDanaAdmin: e.target.value })}
+                        className="w-full p-2 bg-stone-900 border border-stone-700 rounded-lg text-sm text-amber-300 font-mono font-bold outline-none focus:border-amber-500"
+                        placeholder="081314420312"
+                      />
+                      <span className="text-[10px] text-stone-500 mt-1 block">Nomor rekening transfer DANA resmi</span>
+                    </div>
+
+                    <div className="bg-stone-950 p-3.5 rounded-xl border border-stone-800">
+                      <span className="text-[11px] text-stone-400 block mb-1">Nama Pemilik Akun DANA:</span>
+                      <input
+                        type="text"
+                        value={localConfig.namaAkunDana}
+                        onChange={e => setLocalConfig({ ...localConfig, namaAkunDana: e.target.value })}
+                        className="w-full p-2 bg-stone-900 border border-stone-700 rounded-lg text-sm text-white font-bold outline-none focus:border-amber-500"
+                        placeholder="S-IMPEL DIGITAL"
+                      />
+                      <span className="text-[10px] text-stone-500 mt-1 block">Nama yang muncul saat scan QRIS</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-stone-950 p-4 rounded-xl border border-stone-800 text-xs text-stone-300 space-y-2">
+                    <div className="font-bold text-amber-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      Status Integrasi QRIS Pembelian Suara:
+                    </div>
+                    <ul className="list-disc list-inside space-y-1 text-stone-400 text-[11px]">
+                      <li>
+                        Setiap pemirsa yang menekan tombol <strong>Beli Suara / Top Up Vote</strong> akan langsung melihat QRIS yang diunggah di sini.
+                      </li>
+                      <li>
+                        Dukungan format foto QRIS: <strong>PNG, JPG, JPEG, WebP</strong> (Maksimal resolusi tajam agar mudah dipindai oleh kamera HP).
+                      </li>
+                      <li>
+                        Perubahan langsung aktif seketika tanpa perlu restart sistem.
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>

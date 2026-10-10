@@ -248,57 +248,71 @@ export const DanaPaymentModal: React.FC<DanaPaymentModalProps> = ({
                     QRIS RESMI DANA
                   </div>
                   <div className="bg-stone-50 p-2 rounded-xl border border-stone-200 flex flex-col items-center justify-center">
-                    {/* SVG Stylized QR Code with DANA logo accent */}
-                    <svg viewBox="0 0 200 200" className="w-44 h-44">
-                      {/* Corner markers */}
-                      <rect x="10" y="10" width="45" height="45" fill="#111827" rx="6" />
-                      <rect x="18" y="18" width="29" height="29" fill="#ffffff" rx="3" />
-                      <rect x="25" y="25" width="15" height="15" fill="#d97706" rx="2" />
+                    {eventConfig.qrisImageUrl ? (
+                      <div className="space-y-1">
+                        <img
+                          src={eventConfig.qrisImageUrl}
+                          alt="QRIS DANA Pembayaran"
+                          className="w-52 h-52 object-contain mx-auto rounded-lg shadow-sm border border-stone-200 bg-white p-1"
+                        />
+                        <div className="text-[10px] text-emerald-700 font-semibold flex items-center justify-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>QRIS DANA Resmi Panitia</span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* SVG Stylized QR Code with DANA logo accent */
+                      <svg viewBox="0 0 200 200" className="w-44 h-44">
+                        {/* Corner markers */}
+                        <rect x="10" y="10" width="45" height="45" fill="#111827" rx="6" />
+                        <rect x="18" y="18" width="29" height="29" fill="#ffffff" rx="3" />
+                        <rect x="25" y="25" width="15" height="15" fill="#d97706" rx="2" />
 
-                      <rect x="145" y="10" width="45" height="45" fill="#111827" rx="6" />
-                      <rect x="153" y="18" width="29" height="29" fill="#ffffff" rx="3" />
-                      <rect x="160" y="25" width="15" height="15" fill="#d97706" rx="2" />
+                        <rect x="145" y="10" width="45" height="45" fill="#111827" rx="6" />
+                        <rect x="153" y="18" width="29" height="29" fill="#ffffff" rx="3" />
+                        <rect x="160" y="25" width="15" height="15" fill="#d97706" rx="2" />
 
-                      <rect x="10" y="145" width="45" height="45" fill="#111827" rx="6" />
-                      <rect x="18" y="153" width="29" height="29" fill="#ffffff" rx="3" />
-                      <rect x="25" y="160" width="15" height="15" fill="#d97706" rx="2" />
+                        <rect x="10" y="145" width="45" height="45" fill="#111827" rx="6" />
+                        <rect x="18" y="153" width="29" height="29" fill="#ffffff" rx="3" />
+                        <rect x="25" y="160" width="15" height="15" fill="#d97706" rx="2" />
 
-                      {/* Random dense QR code matrix pattern */}
-                      <g fill="#1f2937">
-                        <rect x="65" y="15" width="12" height="12" />
-                        <rect x="85" y="15" width="12" height="24" />
-                        <rect x="105" y="20" width="24" height="12" />
-                        <rect x="65" y="35" width="25" height="10" />
-                        <rect x="100" y="40" width="15" height="15" />
-                        <rect x="125" y="35" width="12" height="20" />
+                        {/* Random dense QR code matrix pattern */}
+                        <g fill="#1f2937">
+                          <rect x="65" y="15" width="12" height="12" />
+                          <rect x="85" y="15" width="12" height="24" />
+                          <rect x="105" y="20" width="24" height="12" />
+                          <rect x="65" y="35" width="25" height="10" />
+                          <rect x="100" y="40" width="15" height="15" />
+                          <rect x="125" y="35" width="12" height="20" />
 
-                        <rect x="20" y="65" width="25" height="12" />
-                        <rect x="55" y="65" width="20" height="20" />
-                        <rect x="85" y="60" width="30" height="12" />
-                        <rect x="125" y="65" width="20" height="15" />
-                        <rect x="155" y="65" width="25" height="12" />
+                          <rect x="20" y="65" width="25" height="12" />
+                          <rect x="55" y="65" width="20" height="20" />
+                          <rect x="85" y="60" width="30" height="12" />
+                          <rect x="125" y="65" width="20" height="15" />
+                          <rect x="155" y="65" width="25" height="12" />
 
-                        <rect x="15" y="85" width="15" height="25" />
-                        <rect x="40" y="90" width="25" height="15" />
-                        <rect x="140" y="90" width="20" height="25" />
-                        <rect x="170" y="85" width="15" height="20" />
+                          <rect x="15" y="85" width="15" height="25" />
+                          <rect x="40" y="90" width="25" height="15" />
+                          <rect x="140" y="90" width="20" height="25" />
+                          <rect x="170" y="85" width="15" height="20" />
 
-                        <rect x="70" y="85" width="60" height="30" rx="4" fill="#0284c7" />
-                        <text x="100" y="105" fill="#ffffff" fontSize="11" fontWeight="bold" textAnchor="middle">DANA</text>
+                          <rect x="70" y="85" width="60" height="30" rx="4" fill="#0284c7" />
+                          <text x="100" y="105" fill="#ffffff" fontSize="11" fontWeight="bold" textAnchor="middle">DANA</text>
 
-                        <rect x="15" y="120" width="20" height="15" />
-                        <rect x="45" y="115" width="30" height="12" />
-                        <rect x="85" y="125" width="20" height="20" />
-                        <rect x="115" y="120" width="25" height="15" />
-                        <rect x="150" y="125" width="35" height="12" />
+                          <rect x="15" y="120" width="20" height="15" />
+                          <rect x="45" y="115" width="30" height="12" />
+                          <rect x="85" y="125" width="20" height="20" />
+                          <rect x="115" y="120" width="25" height="15" />
+                          <rect x="150" y="125" width="35" height="12" />
 
-                        <rect x="65" y="155" width="30" height="12" />
-                        <rect x="105" y="150" width="15" height="30" />
-                        <rect x="130" y="160" width="20" height="15" />
-                        <rect x="160" y="155" width="25" height="25" />
-                        <rect x="65" y="175" width="45" height="12" />
-                      </g>
-                    </svg>
+                          <rect x="65" y="155" width="30" height="12" />
+                          <rect x="105" y="150" width="15" height="30" />
+                          <rect x="130" y="160" width="20" height="15" />
+                          <rect x="160" y="155" width="25" height="25" />
+                          <rect x="65" y="175" width="45" height="12" />
+                        </g>
+                      </svg>
+                    )}
                   </div>
                   <div className="mt-2 text-xs font-bold text-stone-800">
                     {eventConfig.namaAkunDana || 'S-IMPEL DIGITAL'}

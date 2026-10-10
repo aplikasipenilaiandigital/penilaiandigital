@@ -76,13 +76,19 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-stone-900 text-stone-100 flex flex-col">
+    <div className="min-h-screen bg-stone-950/85 backdrop-blur-[2px] text-stone-100 flex flex-col">
       {/* Hero Banner Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-stone-950 via-amber-950/60 to-stone-900 border-b border-amber-600/30 py-12 sm:py-16 px-4">
+      <section className="relative overflow-hidden bg-gradient-to-b from-stone-950/90 via-amber-950/50 to-stone-900/80 border-b border-amber-600/30 py-12 sm:py-16 px-4">
         {/* Decorative background glow & pattern */}
         <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:20px_20px]" />
         
         <div className="max-w-6xl mx-auto text-center relative z-10 space-y-4">
+          {eventConfig.logoUrl && (
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl bg-stone-950 p-1 mb-2 transform hover:scale-105 transition-transform">
+              <img src={eventConfig.logoUrl} alt="Logo Resmi Kegiatan" className="w-full h-full object-cover rounded-xl" />
+            </div>
+          )}
+
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 via-red-500/20 to-blue-500/20 border border-amber-400/40 rounded-full px-4 py-1.5 text-xs text-amber-300 font-semibold shadow-inner">
             <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '6s' }} />
             <span>PORTAL RESMI S-IMPEL DIGITAL • LIVE SCORE & VOTING REAL-TIME</span>
